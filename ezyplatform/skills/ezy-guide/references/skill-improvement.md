@@ -39,6 +39,11 @@ Say "No skill suggestions" when nothing qualifies, so the check is visible.
 1. Make the smallest change that fixes the observed friction (frontmatter, SKILL.md step, reference, or script).
 2. Run the touched script in its read-only / dry-run mode against the live site.
 3. Record new verified platform facts in `platform-gotchas.md` with an evidence line.
-4. Bump `version` in `.claude-plugin/plugin.json` and add a `CHANGELOG.md` entry; users only receive releases with a new version.
-5. Mention the change in the commit message (`feat(ezyplatform): ...` / `fix(ezyplatform): ...`).
+4. Release in one step from a clone of the marketplace repository (users only receive releases with a new version):
+   ```bash
+   python3 scripts/release_plugin.py ezyplatform patch -n "<what changed and why>" -m "fix(ezyplatform): <summary>"           # dry run
+   python3 scripts/release_plugin.py ezyplatform patch -n "<what changed and why>" -m "fix(ezyplatform): <summary>" --push --install --yes
+   ```
+   It bumps `version`, writes the `CHANGELOG.md` entry, validates (`claude plugin validate --strict`, Python syntax), commits, pushes and refreshes the local install. Use `minor` for new features or behaviour changes.
+5. Do not hand-edit `version`/`CHANGELOG.md` when using the script; it refuses duplicate versions.
 6. **Changed skills are not reloaded in a running session.** A session keeps the skill text it loaded at start, so it still shows the old instructions after you edit them. Test script changes by running the scripts directly; to confirm the new SKILL.md text (or `${CLAUDE_SKILL_DIR}` substitution), start a new agent session. Claude Code runs a copy of the plugin cached per version (`~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`), even when the marketplace is a local folder: after bumping the version run `claude plugin marketplace update cppai` and `claude plugin update ezyplatform@cppai` (or `/plugin marketplace update cppai` in a session), then start a new session. Never edit the cached copy.

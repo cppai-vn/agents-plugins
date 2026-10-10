@@ -31,7 +31,13 @@ Each plugin keeps its skills in `<name>/skills/` using the open `SKILL.md` forma
 
 Adding a plugin: create `<name>/` with its manifest, skills and `CHANGELOG.md`, add an entry to `marketplace.json` (without `version`), and run `claude plugin validate . --strict`.
 
-Releasing: users only receive an update when `version` in `<name>/.claude-plugin/plugin.json` changes. Bump it and add a `CHANGELOG.md` entry in the same commit; CI checks both.
+Releasing: users only receive an update when `version` in `<name>/.claude-plugin/plugin.json` changes, and installed plugins run from a per-version cache. Release with one command (dry run without `--yes`):
+
+```bash
+python3 scripts/release_plugin.py <name> patch|minor|major -n "change" -m "fix(<name>): summary" --push --install --yes
+```
+
+It bumps the version, adds the `CHANGELOG.md` entry, validates, commits, pushes and runs `claude plugin marketplace update` + `claude plugin update` locally. CI checks the version and CHANGELOG on GitHub.
 
 ## License
 

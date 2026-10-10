@@ -2,6 +2,11 @@
 
 Users receive an update only when `version` in `.claude-plugin/plugin.json` changes; bump it for every release and record the change here.
 
+## 0.2.3 — 2026-10-10
+
+- Add scripts/release_plugin.py: one-step version bump, CHANGELOG entry, strict validation, commit, push and local plugin refresh for maintainers
+- ezy-guide improvement loop points maintainers to the release script
+
 ## 0.2.2 — 2026-10-10
 
 - `ezy-guide`: correct the update note — installed plugins run from a per-version cache, also for local-folder marketplaces, so a version bump plus `plugin update` is required before a new session sees changes.
