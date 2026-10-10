@@ -1,0 +1,13 @@
+{
+  "name": "ezyplatform-skills",
+  "version": "0.1.0",
+  "description": "Agent skills to manage EzyPlatform / EzyArticle sites from a local project: init, sync, author, media, i18n, publish with backup and rollback, verify.",
+  "author": {
+    "name": "CPPAI Co.,LTD",
+    "url": "https://cpp.ai.vn"
+  },
+  "homepage": "https://github.com/cppai-vn/ezyplatform-skills",
+  "repository": "https://github.com/cppai-vn/ezyplatform-skills",
+  "license": "MIT",
+  "keywords": ["ezyplatform", "ezyarticle", "cms", "thymeleaf", "skills"]
+}

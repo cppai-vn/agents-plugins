@@ -1,0 +1,4 @@
+environment.json
+.artifacts/
+*.pyc
+.DS_Store

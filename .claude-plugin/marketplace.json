@@ -1,0 +1,20 @@
+{
+  "name": "cppai",
+  "owner": {
+    "name": "CPPAI Co.,LTD",
+    "url": "https://github.com/cppai-vn"
+  },
+  "metadata": {
+    "description": "CPPAI plugins for EzyPlatform"
+  },
+  "plugins": [
+    {
+      "name": "ezyplatform-skills",
+      "source": "./",
+      "description": "Agent skills to manage EzyPlatform / EzyArticle sites: init, sync, author, media, i18n, publish, verify.",
+      "version": "0.1.0",
+      "category": "development",
+      "keywords": ["ezyplatform", "ezyarticle", "cms"]
+    }
+  ]
+}
