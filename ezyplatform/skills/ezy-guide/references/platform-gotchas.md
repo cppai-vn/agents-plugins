@@ -16,5 +16,5 @@ the improvement loop.
 | 8 | `/api/v1/media/<name>` on the public site returns 404 until the file is uploaded to the media library; local `api/v1/media` files are not on the server by themselves. | Run `ezy-media status` before referencing a media URL. | cpp.ai.vn, 2026-10-10 |
 | 9 | Page/fragment `contentType` must be `THYMELEAF` for `ezy:replace`, `th:*`, `ezyfunctions` or `#messages` to render; `HTML` outputs them verbatim. | Check `meta.json` when markup shows up raw on the live page (`ezy-verify live` flags it). | README notes |
 | 10 | Embedding images as data URLs works but bloats every page (cpp.ai.vn home ≈385 KB) and duplicates them per language. | Prefer the media library + `?v=` / `ezy:mhref`. | cpp.ai.vn home |
-| 12 | No admin API to list pages was found (fragments have `/pages/fragments`). | Pages must be pulled by slug; `ezy-sync pull-all` only refreshes pages already present locally. | ezy-sync pull-all build, 2026-10-10 |
 | 11 | Scroll-driven CSS animations (`animation-timeline: view()`) leave elements half transparent while partly in view. | Avoid opacity-based scroll reveals on content. | cpp.ai.vn redesign review |
+| 12 | No admin API to list pages was found (fragments have `/pages/fragments`). | Pages must be pulled by slug; `ezy-sync pull-all` only refreshes pages already present locally. | ezy-sync pull-all build, 2026-10-10 |

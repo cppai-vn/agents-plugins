@@ -21,6 +21,7 @@ import glob
 import json
 import os
 import re
+import shlex
 import shutil
 import stat
 import subprocess
@@ -176,7 +177,7 @@ def print_token_help(admin_url, root=None):
      Also set "admin_url" to {base if base != '<admin_url>' else 'your admin URL, e.g. https://admin.example.com'}.
      Do not send the token in chat; it grants the full rights of that admin account.
      Remove the "beta" entry if you have no beta server.
-  4. Validate: python3 {os.path.abspath(__file__)} check""")
+  4. Validate: python3 {os.path.abspath(__file__)} check{' ' + shlex.quote(root) if root else ''}""")
 
 
 def cmd_check(args):
