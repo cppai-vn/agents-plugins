@@ -2,6 +2,10 @@
 
 Users receive an update only when `version` in `.claude-plugin/plugin.json` changes; bump it for every release and record the change here.
 
+## 0.2.1 — 2026-10-10
+
+- `ezy-guide`: maintainers are told that edited skills load only in a new session, and the release steps (version bump, CHANGELOG, marketplace update) are part of the improvement loop.
+
 ## 0.2.0 — 2026-10-10
 
 - SKILL.md files reference bundled scripts through `${CLAUDE_SKILL_DIR}`, so the same files work as a plugin and as a copied `.claude/skills` / `.agents/skills` folder.

@@ -68,4 +68,4 @@ Each page/fragment: `content.html`, `head.html`, `foot.html`, `meta.json`, plus 
 
 ## 7. Improvement check (end of every site operation)
 
-After any operation on a site, follow `references/skill-improvement.md`: note friction, propose concrete skill changes to the human (or say "No skill suggestions"), and edit skills only after approval.
+After any operation on a site, follow `references/skill-improvement.md`: note friction, propose concrete skill changes to the human (or say "No skill suggestions"), and edit skills only after approval. Edited skills load only in a new session; the current one keeps the text it started with.
