@@ -25,18 +25,23 @@ All writes to your site run as a dry run first and need your explicit approval. 
 
 ## Install
 
-### Claude Code (plugin)
+The same repository is a plugin marketplace named `cppai` for every agent below. Install it once per agent you use; each agent keeps its own copy, so updates are per agent too. Start a new session after installing or updating — skills load at session start.
 
-```
-/plugin marketplace add cppai-vn/agents-plugins
-/plugin install ezyplatform@cppai
-```
+| Agent | Install | Update |
+|---|---|---|
+| Claude Code | `/plugin marketplace add cppai-vn/agents-plugins`<br>`/plugin install ezyplatform@cppai` | `/plugin marketplace update cppai`<br>`/plugin update ezyplatform@cppai` |
+| Codex CLI / app | `codex plugin marketplace add cppai-vn/agents-plugins`<br>`codex plugin add ezyplatform@cppai` (or `/plugins` in the TUI) | `codex plugin marketplace upgrade cppai` |
+| GitHub Copilot CLI | `copilot plugin marketplace add cppai-vn/agents-plugins`<br>`copilot plugin install ezyplatform@cppai` | `copilot plugin marketplace update cppai`<br>`copilot plugin update ezyplatform` |
+| Cursor | **Customize** → **From GitHub Repository** → `https://github.com/cppai-vn/agents-plugins` → install **ezyplatform** (project or user scope). Teams: add the repo under Dashboard → Plugins & MCPs → Team Marketplaces | Reinstall, or enable Auto Refresh on a team marketplace |
+| oh-my-pi (`omp`) | `omp plugin marketplace add cppai-vn/agents-plugins`<br>`omp plugin install ezyplatform@cppai` (or `/marketplace` in the TUI) | `omp plugin marketplace update cppai`<br>`omp plugin upgrade ezyplatform@cppai` |
 
-Update later with `/plugin marketplace update cppai`.
+Skills appear namespaced in agents that support it (e.g. `ezyplatform:ezy-guide`). Only Claude Code fills in `${CLAUDE_SKILL_DIR}` in the skill instructions; the other agents follow the note at the top of each `SKILL.md` and use the folder that contains it.
 
-### Other agents (Codex, Cursor, …) or a pinned copy
+Install in only one way per agent: the plugin, or a copied `skills/` folder (below), not both — otherwise the agent sees every skill twice.
 
-Copy the `skills/` folder into your site project:
+### Agents without plugins, or a pinned copy
+
+Agents that read skill folders but not plugins (OpenCode, Factory Droid, Kiro, Roo, Windsurf, …) — copy the `skills/` folder into your site project:
 
 ```bash
 git clone https://github.com/cppai-vn/agents-plugins.git agents-plugins
@@ -73,14 +78,19 @@ MIT — see [LICENSE](../LICENSE). The starter templates in `skills/ezy-init/tem
 
 ## Tiếng Việt
 
-**Cài đặt (Claude Code):**
+**Cài đặt:** repo này là marketplace `cppai` dùng chung cho các agent có cơ chế plugin. Cài riêng cho từng agent bạn dùng, sau khi cài hoặc cập nhật thì mở session mới.
 
-```
-/plugin marketplace add cppai-vn/agents-plugins
-/plugin install ezyplatform@cppai
-```
+| Agent | Cài | Cập nhật |
+|---|---|---|
+| Claude Code | `/plugin marketplace add cppai-vn/agents-plugins`<br>`/plugin install ezyplatform@cppai` | `/plugin marketplace update cppai`<br>`/plugin update ezyplatform@cppai` |
+| Codex CLI / app | `codex plugin marketplace add cppai-vn/agents-plugins`<br>`codex plugin add ezyplatform@cppai` (hoặc `/plugins` trong TUI) | `codex plugin marketplace upgrade cppai` |
+| GitHub Copilot CLI | `copilot plugin marketplace add cppai-vn/agents-plugins`<br>`copilot plugin install ezyplatform@cppai` | `copilot plugin marketplace update cppai`<br>`copilot plugin update ezyplatform` |
+| Cursor | **Customize** → **From GitHub Repository** → `https://github.com/cppai-vn/agents-plugins` → cài **ezyplatform**. Team: thêm repo ở Dashboard → Plugins & MCPs → Team Marketplaces | Cài lại, hoặc bật Auto Refresh cho team marketplace |
+| oh-my-pi (`omp`) | `omp plugin marketplace add cppai-vn/agents-plugins`<br>`omp plugin install ezyplatform@cppai` (hoặc `/marketplace` trong TUI) | `omp plugin marketplace update cppai`<br>`omp plugin upgrade ezyplatform@cppai` |
 
-Agent khác (Codex, Cursor…): chép thư mục `skills/ezy-*` vào `.claude/skills/` hoặc `.agents/skills/` của dự án site, nhớ giữ cả `ezy-shared`.
+Mỗi agent chỉ cài một kiểu: hoặc plugin, hoặc chép thư mục skill, không cả hai (nếu không skill sẽ hiện hai lần).
+
+Agent không có plugin (OpenCode, Droid, Kiro, Roo, Windsurf…): chép thư mục `skills/ezy-*` vào `.claude/skills/` hoặc `.agents/skills/` của dự án site, nhớ giữ cả `ezy-shared`.
 
 **Bắt đầu:**
 

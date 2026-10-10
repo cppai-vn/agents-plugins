@@ -25,6 +25,20 @@ jobs:
           for manifest in */.claude-plugin/plugin.json; do
             claude plugin validate "$(dirname "$(dirname "$manifest")")" --strict
           done
+      - name: Cursor marketplace and manifests match Claude's
+        run: |
+          python - <<'EOF'
+          import json
+          names = lambda path: sorted(p['name'] for p in json.load(open(path))['plugins'])
+          claude, cursor = names('.claude-plugin/marketplace.json'), names('.cursor-plugin/marketplace.json')
+          if claude != cursor:
+              raise SystemExit(f'.cursor-plugin/marketplace.json lists {cursor}, .claude-plugin/marketplace.json lists {claude}')
+          for entry in json.load(open('.cursor-plugin/marketplace.json'))['plugins']:
+              manifest = f"{entry['source']}/.cursor-plugin/plugin.json"
+              name = json.load(open(manifest))['name']
+              if name != entry['name']:
+                  raise SystemExit(f"{manifest} is named {name}, marketplace entry is {entry['name']}")
+          EOF
       - name: Check Python scripts compile
         run: python -m compileall -q .
       - name: Every plugin version is bumped in its CHANGELOG
