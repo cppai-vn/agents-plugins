@@ -18,6 +18,7 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py status page:home fragment:cppai/
 
 - Compares `content`, `head`, `foot`, `title`, `summary` for the default language and every language that has localized files locally.
 - Exit code 1 when anything differs — treat that as "someone changed the site" and pull before editing.
+- A local page the server does not have is shown as `local only` when its `meta.json` status is `DRAFT` (or missing) and does not count as a difference; with any other status it is `MISSING on server` (deleted or renamed in the admin).
 - Localized `summary` is skipped on purpose (the server keeps one summary; gotcha 5).
 
 ## Pull
@@ -37,13 +38,26 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py pull fragment:cppai/header --lan
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py pull-all --langs en                 # dry run: every fragment + local pages
+python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py pull-all --skip-placeholders --write      # first pull of a site
 python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py pull-all --only cppai --langs en --write
 ```
 
-- Covers every fragment the server lists (`/pages/fragments`) plus pages already present locally — there is no page-listing API, so pull a new page once with `pull page:<slug> --write`.
-- `--only <page_name ...>` limits fragments to some groups (a theme may ship dozens of fragments you never edit).
+- Covers every fragment the server lists (`/pages/fragments`) plus pages already present locally — there is no page-listing API, so find pages with `discover-pages` (below) or pull one with `pull page:<slug> --write`.
+- Local-only pages (not created on the server yet) are reported and skipped; they never stop the run.
+- `--skip-placeholders` does not create folders for fragments whose content is only their own name (themes seed dozens of these, and the list grows as the site renders new page types). Fragments already local are always pulled.
+- `--only <page_name ...>` limits fragments to some groups.
 - Run `git status` first; with `--write` it overwrites local regions that differ.
 - The dry-run count can be higher than the real write: localized regions are compared against default files that do not exist yet.
+
+## Discover pages
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py discover-pages            # dry run
+python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py discover-pages --write
+```
+
+- Scans local page and fragment HTML for site-relative links (`href="/<slug>"`, `href="/pages/<slug>"`), checks each unknown slug against the server and pulls the ones that are pages. Slugs that are routes (or missing) are listed with the file that links them.
+- Run it after the first `pull-all`, then again after pulling new pages (pages link to pages). Absolute links to the site's own domain and pages linked from nowhere are not found; pull those with `pull page:<slug>`.
 
 ## Not covered (use the VS Code extension for now)
 

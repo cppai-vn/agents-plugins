@@ -2,6 +2,12 @@
 
 Users receive an update only when `version` in `.claude-plugin/plugin.json` changes; bump it for every release and record the change here.
 
+## 0.3.0 — 2026-10-10
+
+- ezy-sync: local-only draft pages no longer abort pull-all or count as drift
+- ezy-sync: discover-pages finds and pulls pages linked from local HTML
+- ezy-sync: pull-all --skip-placeholders leaves out empty theme fragments
+
 ## 0.2.3 — 2026-10-10
 
 - Add scripts/release_plugin.py: one-step version bump, CHANGELOG entry, strict validation, commit, push and local plugin refresh for maintainers

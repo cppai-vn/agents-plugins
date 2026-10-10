@@ -10,6 +10,8 @@ import os
 import re
 
 REGIONS = {'content': 'content', 'head': 'additionalHead', 'foot': 'additionalFoot'}
+# Site-relative links that can point at a page: /<slug> or /pages/<slug>, no file extension.
+PAGE_LINK = re.compile(r'href=["\']/(?:pages/)?([a-z0-9][a-z0-9_-]*)/?(?=["\'?#])', re.I)
 LANG_FILE = re.compile(r'^(content|head|foot|meta)\.([a-z]{2}(?:-[A-Za-z]{2})?)\.(html|json)$')
 
 
@@ -87,3 +89,15 @@ def write_region(folder, region, text, lang=None):
     with open(os.path.join(folder, name), 'w', encoding='utf-8') as fh:
         fh.write(text)
     return name
+
+
+def linked_page_slugs(root):
+    """{slug: [files linking to it]} for site-relative links in local page and fragment HTML."""
+    found = {}
+    for base in ('pages', 'page-fragments'):
+        for folder, _, files in os.walk(os.path.join(root, base)):
+            for name in sorted(f for f in files if f.endswith('.html')):
+                path = os.path.join(folder, name)
+                for slug in PAGE_LINK.findall(_read(path)):
+                    found.setdefault(slug, []).append(os.path.relpath(path, root))
+    return found

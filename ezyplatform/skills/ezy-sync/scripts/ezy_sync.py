@@ -4,14 +4,18 @@
 Usage:
     python3 ezy_sync.py status [target ...]            # every local target when none given
     python3 ezy_sync.py pull <target> [--lang LANG] [--write]
-    python3 ezy_sync.py pull-all [--langs en,vi] [--only page_name ...] [--write]
+    python3 ezy_sync.py pull-all [--langs en,vi] [--only page_name ...] [--skip-placeholders] [--write]
+    python3 ezy_sync.py discover-pages [--write]
 
 Targets: page:<slug> | fragment:<page_name>/<fragment_name>
 `pull`/`pull-all` are dry runs unless --write is given. They write content/head/foot
 regions; meta.json (or meta.<lang>.json) is created when missing, in the
 extension's format, but an existing one is never rewritten so local-only fields
 survive. `pull-all` covers every fragment the server lists plus local pages
-(there is no page-listing API).
+(there is no page-listing API); `discover-pages` finds page slugs linked from
+local HTML and pulls the ones not yet managed locally.
+A page that exists only locally (not created on the server yet) is reported,
+never treated as an error, so it does not stop a bulk pull.
 """
 import argparse
 import datetime
@@ -29,11 +33,32 @@ LANG_SHARED = {'summary'}
 
 
 def fetch(target, lang, env):
+    """Server object for a target, or None when the server has no such page/fragment (HTTP 404)."""
     kind, _, name = target.partition(':')
-    if kind == 'page':
-        return ezy_client.get_page(name, lang, env)
-    page_name, fragment_name = name.split('/')
-    return ezy_client.get_fragment(page_name, fragment_name, lang, env)
+    try:
+        if kind == 'page':
+            return ezy_client.get_page(name, lang, env)
+        page_name, fragment_name = name.split('/')
+        return ezy_client.get_fragment(page_name, fragment_name, lang, env)
+    except ezy_client.EzyError as err:
+        if err.status == 404:
+            return None
+        raise
+
+
+def missing_state(folder):
+    """How to report a target the server does not have: a local draft is expected, anything else is drift."""
+    status = ezy_local.read_meta(folder).get('status')
+    if status in (None, 'DRAFT'):
+        return f"local only ({status or 'no status'}, not on server yet)"
+    return f'MISSING on server (local status {status})'
+
+
+def is_placeholder(target, server):
+    """Theme fragments the server seeds with their own name as content and nothing else."""
+    if not target.startswith('fragment:') or server.get('additionalHead') or server.get('additionalFoot'):
+        return False
+    return (server.get('content') or '').strip() == target.rsplit('/', 1)[1]
 
 
 def compare(target, lang, root, env):
@@ -44,7 +69,7 @@ def compare(target, lang, root, env):
     except ezy_client.EzyError as err:
         return [(target, lang or 'default', 'server', f'ERROR {err.status}')]
     if not server:
-        return [(target, lang or 'default', 'server', 'MISSING on server')]
+        return [(target, lang or 'default', 'server', missing_state(folder))]
     rows = []
     for field in COMPARED:
         if field not in local:
@@ -64,7 +89,7 @@ def cmd_status(args, root, env):
         folder = ezy_local.target_dir(root, target)
         for lang in [None] + ezy_local.languages(folder):
             for row in compare(target, lang, root, env):
-                if row[3] != 'match':
+                if row[3] != 'match' and not row[3].startswith('local only'):
                     dirty += 1
                 print(f'{row[0]:34} {row[1]:8} {row[2]:15} {row[3]}')
     print(f'\n{dirty} difference(s)' if dirty else '\nlocal and server are in sync')
@@ -92,12 +117,14 @@ def build_meta(target, server, lang):
     return {k: v for k, v in meta.items() if v is not None}
 
 
-def pull_target(target, lang, write, root, env, quiet=False):
+def pull_target(target, lang, write, root, env, quiet=False, skip_placeholders=False):
     """Pull one target/language. Returns the number of files written (or that would be)."""
     folder = ezy_local.target_dir(root, target)
     server = fetch(target, lang, env)
     if not server:
-        print(f'  x {target} not found on server')
+        print(f'  - {target}: {missing_state(folder)}, nothing to pull')
+        return 0
+    if skip_placeholders and not os.path.isdir(folder) and is_placeholder(target, server):
         return 0
     changes = []
     for region, key in ezy_local.REGIONS.items():
@@ -150,13 +177,32 @@ def cmd_pull_all(args, root, env):
     total = 0
     for target in targets:
         for lang in langs:
-            total += pull_target(target, lang, args.write, root, env, quiet=True)
+            total += pull_target(target, lang, args.write, root, env, quiet=True,
+                                 skip_placeholders=args.skip_placeholders)
     if not total:
         print('everything already matches the server')
     elif not args.write:
         print(f'\n{total} file(s) would be written. Dry run: re-run with --write after checking git status.')
     else:
         print(f'\n{total} file(s) written')
+    return 0
+
+
+def cmd_discover_pages(args, root, env):
+    """Page slugs linked from local HTML (href="/<slug>" or "/pages/<slug>") that are not local yet."""
+    links = ezy_local.linked_page_slugs(root)
+    local = {t.partition(':')[2] for t in ezy_local.list_targets(root) if t.startswith('page:')}
+    new = sorted(slug for slug in links if slug not in local)
+    print(f'{len(links)} linked slug(s), {len(links) - len(new)} already local')
+    total = 0
+    for slug in new:
+        if fetch(f'page:{slug}', None, env) is None:
+            print(f'  . /{slug} is not a page (route or missing), linked from {links[slug][0]}')
+            continue
+        print(f'  + page:{slug} (linked from {links[slug][0]})')
+        total += pull_target(f'page:{slug}', None, args.write, root, env, quiet=True)
+    if total and not args.write:
+        print('\ndry run: re-run with --write to pull the new pages')
     return 0
 
 
@@ -172,11 +218,16 @@ def main():
     pa = sub.add_parser('pull-all')
     pa.add_argument('--langs', help='comma-separated extra languages, e.g. en,vi')
     pa.add_argument('--only', nargs='*', help='limit fragments to these page_name groups, e.g. cppai common')
+    pa.add_argument('--skip-placeholders', action='store_true',
+                    help='do not create folders for fragments whose content is only their own name')
     pa.add_argument('--write', action='store_true')
+    dp = sub.add_parser('discover-pages')
+    dp.add_argument('--write', action='store_true')
     args = parser.parse_args()
     root = ezy_client.find_project_root()
     env = ezy_client.load_env(root)
-    return {'status': cmd_status, 'pull': cmd_pull, 'pull-all': cmd_pull_all}[args.cmd](args, root, env)
+    return {'status': cmd_status, 'pull': cmd_pull, 'pull-all': cmd_pull_all,
+            'discover-pages': cmd_discover_pages}[args.cmd](args, root, env)
 
 
 if __name__ == '__main__':
