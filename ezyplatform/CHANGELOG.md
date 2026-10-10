@@ -2,6 +2,10 @@
 
 Users receive an update only when `version` in `.claude-plugin/plugin.json` changes; bump it for every release and record the change here.
 
+## 0.2.2 — 2026-10-10
+
+- `ezy-guide`: correct the update note — installed plugins run from a per-version cache, also for local-folder marketplaces, so a version bump plus `plugin update` is required before a new session sees changes.
+
 ## 0.2.1 — 2026-10-10
 
 - `ezy-guide`: maintainers are told that edited skills load only in a new session, and the release steps (version bump, CHANGELOG, marketplace update) are part of the improvement loop.
