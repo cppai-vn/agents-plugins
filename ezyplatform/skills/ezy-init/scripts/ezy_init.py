@@ -35,7 +35,7 @@ sys.path.insert(0, os.path.join(SKILLS_ROOT, 'ezy-shared'))
 TOKEN_PLACEHOLDER = '<Your admin access token>'
 URL_PLACEHOLDER_RE = re.compile(r'^<.*>$')
 EZY_SECTION_MARK = '# Working With This Project'
-REPO = 'cppai-vn/ezyplatform-skills'
+REPO = 'cppai-vn/agents-plugins'
 GITIGNORE_LINES = ['environment.json', '.artifacts/', '*.pyc']
 EXAMPLE_META = {'slug': 'example-page', 'title': 'Example Page', 'summary': '', 'featuredImageName': '',
                 'pageType': 'PAGE', 'contentType': 'HTML', 'status': 'DRAFT', 'metadata': {}}

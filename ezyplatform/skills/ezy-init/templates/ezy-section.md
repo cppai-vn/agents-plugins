@@ -8,7 +8,7 @@ commit or paste it anywhere).
 ## ezy-* skills
 
 The `ezy-*` agent skills manage this site. Install them once as the Claude Code plugin
-`ezyplatform-skills` (https://github.com/{{REPO}}), or copy its `skills/` folder into
+`ezyplatform` from the CPPAI marketplace (https://github.com/{{REPO}}), or copy its `skills/` folder into
 `.claude/skills/` / `.agents/skills/` for other agents:
 
 * Start every site task with `ezy-guide` (routing, safety rules, verified platform gotchas). It routes to `ezy-init`, `ezy-sync`, `ezy-author`, `ezy-media`, `ezy-i18n`, `ezy-publish`, `ezy-verify`.

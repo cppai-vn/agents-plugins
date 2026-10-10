@@ -5,16 +5,20 @@
     "url": "https://github.com/cppai-vn"
   },
   "metadata": {
-    "description": "CPPAI plugins for EzyPlatform"
+    "description": "CPPAI plugins for coding agents"
   },
   "plugins": [
     {
-      "name": "ezyplatform-skills",
-      "source": "./",
-      "description": "Agent skills to manage EzyPlatform / EzyArticle sites: init, sync, author, media, i18n, publish, verify.",
+      "name": "ezyplatform",
+      "source": "./ezyplatform",
+      "description": "Agent skills to manage EzyPlatform / EzyArticle sites from a local project: init, sync, author, media, i18n, publish with backup and rollback, verify.",
       "version": "0.1.0",
       "category": "development",
-      "keywords": ["ezyplatform", "ezyarticle", "cms"]
+      "keywords": [
+        "ezyplatform",
+        "ezyarticle",
+        "cms"
+      ]
     }
   ]
 }

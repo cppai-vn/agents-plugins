@@ -31,7 +31,7 @@ Say "No skill suggestions" when nothing qualifies, so the check is visible.
 
 ## Where the change goes
 
-- Skills installed as the `ezyplatform-skills` plugin are a read-only cache: never edit them in place. Open an issue or pull request at the skills repository (see the plugin's README), including the evidence.
+- Skills installed as the `ezyplatform` plugin are a read-only cache: never edit them in place. Open an issue or pull request at the skills repository (see the plugin's README), including the evidence.
 - Skills vendored in the project (`.claude/skills`, `.agents/skills`) or a local clone of the repository may be edited after approval; upstream the change afterwards so every EzyPlatform user gets it.
 
 ## After approval
