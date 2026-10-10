@@ -5,7 +5,7 @@ description: Write or redesign EzyArticle pages, page fragments and themes (HTML
 
 # ezy-author
 
-> Paths: `<skills>` is the folder that holds the ezy-* skills (the parent of this skill's base directory — the plugin's `skills/`, `.claude/skills` or `.agents/skills`). Run commands from the site project root (the folder with `environment.json`).
+> Paths: `${CLAUDE_SKILL_DIR}` is this skill's folder (Claude Code substitutes it; other agents: replace it with the folder containing this SKILL.md). Sibling skills and the shared library `ezy-shared` sit next to it. Run commands from the site project root (the folder with `environment.json`).
 
 Edits local files only. Publishing is `ezy-publish`; preview is `ezy-verify`.
 
@@ -32,7 +32,7 @@ Edits local files only. Publishing is `ezy-publish`; preview is `ezy-verify`.
 - Works in light and dark (if the site has a theme toggle) and at 375 px width without horizontal scroll.
 - Text contrast ≥ 4.5:1; no meaning carried by faded/grey text alone.
 - Motion is CSS-only, readable when static, and disabled under `prefers-reduced-motion`.
-- Anchors used by menus still exist (check menu `customLink`s via `python3 <skills>/ezy-shared/ezy_client.py get /ezyarticle/api/v1/menus`).
+- Anchors used by menus still exist (check menu `customLink`s via `python3 ${CLAUDE_SKILL_DIR}/../ezy-shared/ezy_client.py get /ezyarticle/api/v1/menus`).
 
 ## Finish
 

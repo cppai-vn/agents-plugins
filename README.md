@@ -29,7 +29,9 @@ Each plugin keeps its skills in `<name>/skills/` using the open `SKILL.md` forma
 <name>/README.md
 ```
 
-Adding a plugin: create `<name>/` with its manifest and skills, add an entry to `marketplace.json`, and run `claude plugin validate .`.
+Adding a plugin: create `<name>/` with its manifest, skills and `CHANGELOG.md`, add an entry to `marketplace.json` (without `version`), and run `claude plugin validate . --strict`.
+
+Releasing: users only receive an update when `version` in `<name>/.claude-plugin/plugin.json` changes. Bump it and add a `CHANGELOG.md` entry in the same commit; CI checks both.
 
 ## License
 

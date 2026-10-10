@@ -5,14 +5,14 @@ description: Manage files in the EzyPlatform media library (images, logos, CSS, 
 
 # ezy-media
 
-> Paths: `<skills>` is the folder that holds the ezy-* skills (the parent of this skill's base directory — the plugin's `skills/`, `.claude/skills` or `.agents/skills`). Run commands from the site project root (the folder with `environment.json`).
+> Paths: `${CLAUDE_SKILL_DIR}` is this skill's folder (Claude Code substitutes it; other agents: replace it with the folder containing this SKILL.md). Sibling skills and the shared library `ezy-shared` sit next to it. Run commands from the site project root (the folder with `environment.json`).
 
 Read `ezy-guide` first. Uploads and visibility changes write to the server: dry run, then human approval.
 
 ## Commands
 
 ```bash
-S=<skills>/ezy-media/scripts/ezy_media.py
+S=${CLAUDE_SKILL_DIR}/scripts/ezy_media.py
 python3 $S status                         # every local api/v1/media file vs server
 python3 $S status cppai-logo.webp
 python3 $S upload api/v1/media/hero.webp                 # dry run: add or replace

@@ -5,15 +5,15 @@ description: Compare and pull EzyPlatform pages and page fragments from the live
 
 # ezy-sync
 
-> Paths: `<skills>` is the folder that holds the ezy-* skills (the parent of this skill's base directory — the plugin's `skills/`, `.claude/skills` or `.agents/skills`). Run commands from the site project root (the folder with `environment.json`).
+> Paths: `${CLAUDE_SKILL_DIR}` is this skill's folder (Claude Code substitutes it; other agents: replace it with the folder containing this SKILL.md). Sibling skills and the shared library `ezy-shared` sit next to it. Run commands from the site project root (the folder with `environment.json`).
 
 Server → local. Never writes to the site. Read `ezy-guide` first if you have not.
 
 ## Check drift
 
 ```bash
-python3 <skills>/ezy-sync/scripts/ezy_sync.py status            # all local targets
-python3 <skills>/ezy-sync/scripts/ezy_sync.py status page:home fragment:cppai/header
+python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py status            # all local targets
+python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py status page:home fragment:cppai/header
 ```
 
 - Compares `content`, `head`, `foot`, `title`, `summary` for the default language and every language that has localized files locally.
@@ -23,8 +23,8 @@ python3 <skills>/ezy-sync/scripts/ezy_sync.py status page:home fragment:cppai/he
 ## Pull
 
 ```bash
-python3 <skills>/ezy-sync/scripts/ezy_sync.py pull fragment:cppai/header --lang en          # dry run
-python3 <skills>/ezy-sync/scripts/ezy_sync.py pull fragment:cppai/header --lang en --write
+python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py pull fragment:cppai/header --lang en          # dry run
+python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py pull fragment:cppai/header --lang en --write
 ```
 
 - Dry run by default; `--write` overwrites `content/head/foot[.<lang>].html`.
@@ -36,8 +36,8 @@ python3 <skills>/ezy-sync/scripts/ezy_sync.py pull fragment:cppai/header --lang 
 ## Pull everything
 
 ```bash
-python3 <skills>/ezy-sync/scripts/ezy_sync.py pull-all --langs en                 # dry run: every fragment + local pages
-python3 <skills>/ezy-sync/scripts/ezy_sync.py pull-all --only cppai --langs en --write
+python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py pull-all --langs en                 # dry run: every fragment + local pages
+python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py pull-all --only cppai --langs en --write
 ```
 
 - Covers every fragment the server lists (`/pages/fragments`) plus pages already present locally — there is no page-listing API, so pull a new page once with `pull page:<slug> --write`.

@@ -5,7 +5,7 @@ description: Bootstrap a new EzyPlatform / EzyArticle project folder — the sam
 
 # ezy-init
 
-> Paths: `<skills>` is the folder that holds the ezy-* skills (the parent of this skill's base directory — the plugin's `skills/`, `.claude/skills` or `.agents/skills`). Run commands from the site project root (the folder with `environment.json`).
+> Paths: `${CLAUDE_SKILL_DIR}` is this skill's folder (Claude Code substitutes it; other agents: replace it with the folder containing this SKILL.md). Sibling skills and the shared library `ezy-shared` sit next to it. Run commands from the site project root (the folder with `environment.json`).
 
 Sets up a project so every other `ezy-*` skill works. Never ask the human to paste the token into chat; they paste it into `environment.json` themselves.
 
@@ -14,10 +14,10 @@ Sets up a project so every other `ezy-*` skill works. Never ask the human to pas
 Ask for the admin URL if you do not have it (e.g. `https://admin.example.com`), then:
 
 ```bash
-python3 <skills>/ezy-init/scripts/ezy_init.py create <target-folder> --admin-url https://admin.example.com
+python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_init.py create <target-folder> --admin-url https://admin.example.com
 ```
 
-The script lives in `<skills>/ezy-init/scripts/` wherever the skills are installed; it prints its own absolute path in the next steps.
+The script lives in `${CLAUDE_SKILL_DIR}/scripts/` wherever the skills are installed; it prints its own absolute path in the next steps.
 
 Creates only what is missing (safe to re-run):
 
@@ -47,14 +47,14 @@ Explain the risk once: the token carries the full rights of that admin account (
 ## 3. Validate
 
 ```bash
-python3 <skills>/ezy-init/scripts/ezy_init.py check <target-folder>
+python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_init.py check <target-folder>
 ```
 
 Checks JSON shape, one default environment, real URL, token no longer the placeholder, `.gitignore` protection, file permissions; then calls the API: roles, public site URL, number of fragment groups on the server. HTTP 401 → token wrong/expired (copy again); 403 → wrong URL or not an admin token.
 
 ## 4. Hand over
 
-- First content pull: `python3 <skills>/ezy-sync/scripts/ezy_sync.py pull-all --langs <site languages>` (dry run, then `--write`; `--only <group>` to skip theme fragments you will not edit), and `pull page:<slug> --write` for each page — there is no page-listing API.
+- First content pull: `python3 ${CLAUDE_SKILL_DIR}/../ezy-sync/scripts/ezy_sync.py pull-all --langs <site languages>` (dry run, then `--write`; `--only <group>` to skip theme fragments you will not edit), and `pull page:<slug> --write` for each page — there is no page-listing API.
 - Record the site structure in `README.md` as you learn it (theme/header/footer fragments, menus, languages).
 - Continue with `ezy-guide`.
 

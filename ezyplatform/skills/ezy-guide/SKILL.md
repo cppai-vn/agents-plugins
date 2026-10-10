@@ -5,7 +5,7 @@ description: Guide and index for the ezy-* skill set that manages EzyPlatform / 
 
 # ezy-guide
 
-> Paths: `<skills>` is the folder that holds the ezy-* skills (the parent of this skill's base directory — the plugin's `skills/`, `.claude/skills` or `.agents/skills`). Run commands from the site project root (the folder with `environment.json`).
+> Paths: `${CLAUDE_SKILL_DIR}` is this skill's folder (Claude Code substitutes it; other agents: replace it with the folder containing this SKILL.md). Sibling skills and the shared library `ezy-shared` sit next to it. Run commands from the site project root (the folder with `environment.json`).
 
 Signpost for the `ezy-*` skills: which skill does what, in what order, under which rules. It does not change the site itself.
 
@@ -15,7 +15,7 @@ Signpost for the `ezy-*` skills: which skill does what, in what order, under whi
 2. Read the project `AGENTS.md` (EzyArticle conventions from the VS Code extension) and `README.md` (site-specific notes). Skills point to them rather than copying them.
 3. Check which site and role you are acting as (read-only):
    ```bash
-   python3 <skills>/ezy-shared/ezy_client.py whoami
+   python3 ${CLAUDE_SKILL_DIR}/../ezy-shared/ezy_client.py whoami
    ```
 4. Before any API call or publish, load `references/platform-gotchas.md` — verified server behaviour that silently breaks naive scripts.
 
@@ -61,7 +61,7 @@ Each page/fragment: `content.html`, `head.html`, `foot.html`, `meta.json`, plus 
 
 ## 6. Shared code and references
 
-- `<skills>/ezy-shared/` — Python library imported by every ezy-* script: `ezy_client.py` (token-safe API client, Cloudflare-safe User-Agent, payload rules) and `ezy_local.py` (local layout, localized fallback). Extend it instead of writing new HTTP code.
+- `${CLAUDE_SKILL_DIR}/../ezy-shared/` — Python library imported by every ezy-* script: `ezy_client.py` (token-safe API client, Cloudflare-safe User-Agent, payload rules) and `ezy_local.py` (local layout, localized fallback). Extend it instead of writing new HTTP code.
 - `references/platform-gotchas.md` — verified platform behaviour with evidence.
 - `references/api-endpoints.md` — admin API endpoints and their status.
 - `references/skill-improvement.md` — how to propose skill changes.
