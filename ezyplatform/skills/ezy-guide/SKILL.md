@@ -29,6 +29,8 @@ Signpost for the `ezy-*` skills: which skill does what, in what order, under whi
 | Images, CSS/JS files, logos, anything under `api/v1/media` | `ezy-media` |
 | Menu labels, shared UI strings, `messages*.properties` | `ezy-i18n` |
 | Push changes live, roll back | `ezy-publish` |
+| Remove a page, post or fragment (move to Trash), undo it | `ezy-publish remove` / `restore` |
+| Mail not arriving, mail templates, contact form, any feature that sends email | `ezy-mail` |
 | Preview locally, check the live site | `ezy-verify` |
 
 ## 3. Standard workflow for a site change
@@ -47,7 +49,8 @@ ezy-sync status → ezy-author (edit) → [ezy-media / ezy-i18n if needed] → e
 | `posts/<slug>/` | blog post | slug |
 | `api/v1/media/<name>` | media library file | file name |
 | `web/messages/`, `admin/messages/` | EzySupport i18n | `messages[_<lang>].properties` |
-| `mail-templates/`, `content-templates/`, `terms/` | EzyMail / EzySupport / taxonomy | folder names |
+| `mail-templates/` | EzyMail templates (`ezy-mail`) | folder name = template name |
+| `content-templates/`, `terms/` | EzySupport / taxonomy | folder names |
 | `.artifacts/` (git-ignored) | backups, previews, evidence | — |
 
 Each page/fragment: `content.html`, `head.html`, `foot.html`, `meta.json`, plus `<region>.<lang>.html` / `meta.<lang>.json` for translations.

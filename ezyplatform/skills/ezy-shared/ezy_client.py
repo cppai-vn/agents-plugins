@@ -133,6 +133,45 @@ def put_post(post_id, body, env=None):
     return request_json('PUT', f'/ezyarticle/api/v1/posts/{post_id}', body, env=env)
 
 
+def list_posts(post_types=None, env=None, page_size=100):
+    """Every non-trashed post (pages, posts, fragments) from GET /ezyarticle/api/v1/posts.
+
+    Items are summaries (id, slug, title, status, postType, timestamps) without content.
+    Trashed posts are not listed. `post_types` filters on postType, e.g. {'PAGE', 'STANDALONE_PAGE'}.
+    """
+    items, token = [], None
+    while True:
+        query = f'?limit={page_size}' + (f'&nextPageToken={urllib.request.quote(token)}' if token else '')
+        page = request_json('GET', f'/ezyarticle/api/v1/posts{query}', env=env) or {}
+        items += page.get('items') or []
+        token = (page.get('pageToken') or {}).get('next')
+        if not token or not (page.get('continuation') or {}).get('hasNext'):
+            break
+    return [p for p in items if not post_types or p.get('postType') in post_types]
+
+
+def trash_posts(ids, env=None):
+    """DELETE /ezyarticle/api/v1/posts?ids=: moves posts to the admin Trash (status TRASH), not a hard delete."""
+    return request_json('DELETE', '/ezyarticle/api/v1/posts?ids=' + ','.join(str(i) for i in ids), env=env)
+
+
+def set_posts_status(ids, status, env=None):
+    """PUT /ezyarticle/api/v1/posts/status?ids=: bulk status change, as the admin list does (restores from Trash)."""
+    return request_json('PUT', '/ezyarticle/api/v1/posts/status?ids=' + ','.join(str(i) for i in ids), {'status': status}, env=env)
+
+
+def site_languages(env=None):
+    """Active website language codes from the `web_languages` setting, default language first; [] when unset."""
+    settings = {s.get('name'): s.get('value') for s in (request_json('GET', '/api/v1/settings', env=env) or {}).get('items') or []}
+    try:
+        langs = [l for l in json.loads(settings.get('web_languages') or '[]') if l.get('active')]
+    except (TypeError, ValueError):
+        return []
+    default = settings.get('web_default_language')
+    codes = [l['code'] for l in sorted(langs, key=lambda l: l.get('displayOrder') or 0)]
+    return sorted(codes, key=lambda c: c != default)
+
+
 def update_payload(live_post, **changes):
     """PUT body rebuilt from the live post so slug, type, status and menu link survive.
 

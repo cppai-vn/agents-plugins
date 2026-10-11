@@ -23,9 +23,12 @@ Do **not** edit skills silently. End the report to the human with:
 
 ```
 Skill suggestions (need approval):
-1. [ezy-<skill>] <change> — why: <evidence from this run> — effort: S/M/L
-2. [new: ezy-<name>] <purpose> — why: <evidence>
+1. [ezy-<skill>] <file> — update — <concrete change> — why: <evidence from this run> — verified: <site> | both — effort: S/M/L
+2. [new: ezy-<name>] <files to create> — new — <purpose and commands> — why: <evidence, which owner is missing> — verified: <site> | both — effort: S/M/L
 ```
+
+Each line must name the exact file (`ezy-<skill>/SKILL.md`, `ezy-<skill>/references/<file>.md`, `ezy-<skill>/scripts/<file>.py`, `ezy-shared/<file>.py`) and say whether it updates an existing skill or creates a new one. "Update the skills" without a file is not a suggestion.
+Check the behaviour read-only on a second site before calling it a platform fact; otherwise mark it `verified: <site>` and phrase it as seen there.
 
 Say "No skill suggestions" when nothing qualifies, so the check is visible.
 

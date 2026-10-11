@@ -1,7 +1,7 @@
 {
   "name": "ezyplatform",
-  "version": "0.3.0",
-  "description": "Agent skills to manage EzyPlatform / EzyArticle sites from a local project: init, sync, author, media, i18n, publish with backup and rollback, verify.",
+  "version": "0.4.0",
+  "description": "Agent skills to manage EzyPlatform / EzyArticle sites from a local project: init, sync, author, media, i18n, mail, publish with backup and rollback, verify.",
   "author": {
     "name": "CPPAI Co.,LTD",
     "url": "https://cpp.ai.vn"

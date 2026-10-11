@@ -42,7 +42,7 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py pull-all --skip-placeholders --w
 python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py pull-all --only cppai --langs en --write
 ```
 
-- Covers every fragment the server lists (`/pages/fragments`) plus pages already present locally — there is no page-listing API, so find pages with `discover-pages` (below) or pull one with `pull page:<slug> --write`.
+- Covers every fragment the server lists (`/pages/fragments`), every page the server lists (`GET /ezyarticle/api/v1/posts`, page types only, Trash excluded) and pages already present locally. With `--only`, server pages are skipped so only the chosen fragment groups and local pages are pulled.
 - Local-only pages (not created on the server yet) are reported and skipped; they never stop the run.
 - `--skip-placeholders` does not create folders for fragments whose content is only their own name (themes seed dozens of these, and the list grows as the site renders new page types). Fragments already local are always pulled.
 - `--only <page_name ...>` limits fragments to some groups.
@@ -56,7 +56,7 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py discover-pages            # dry 
 python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py discover-pages --write
 ```
 
-- Scans local page and fragment HTML for site-relative links (`href="/<slug>"`, `href="/pages/<slug>"`), checks each unknown slug against the server and pulls the ones that are pages. Slugs that are routes (or missing) are listed with the file that links them.
+- Optional now that `pull-all` lists server pages: use it to pull only the pages the site actually links. Scans local page and fragment HTML for site-relative links (`href="/<slug>"`, `href="/pages/<slug>"`), checks each unknown slug against the server and pulls the ones that are pages. Slugs that are routes (or missing) are listed with the file that links them.
 - Run it after the first `pull-all`, then again after pulling new pages (pages link to pages). Absolute links to the site's own domain and pages linked from nowhere are not found; pull those with `pull page:<slug>`.
 
 ## Not covered (use the VS Code extension for now)

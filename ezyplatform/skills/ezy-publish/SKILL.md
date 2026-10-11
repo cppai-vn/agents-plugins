@@ -7,7 +7,7 @@ description: Publish local EzyArticle pages and page fragments to the live EzyPl
 
 > Paths: `${CLAUDE_SKILL_DIR}` is this skill's folder (Claude Code substitutes it; other agents: replace it with the folder containing this SKILL.md). Sibling skills and the shared library `ezy-shared` sit next to it. Run commands from the site project root (the folder with `environment.json`).
 
-Local → server. This changes what visitors see. Read `ezy-guide` (safety rules, gotchas 2–6) first.
+Local → server. This changes what visitors see. Read `ezy-guide` (safety rules, gotchas 2–6, 13–14) first.
 
 ## Workflow
 
@@ -29,6 +29,19 @@ Local → server. This changes what visitors see. Read `ezy-guide` (safety rules
    ```bash
    python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_publish.py restore .artifacts/backups/<timestamp> --yes
    ```
+
+## Remove (move to Trash)
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_publish.py remove page:old-landing fragment:legacy/header post:sample-post    # dry run
+python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_publish.py remove page:old-landing fragment:legacy/header post:sample-post --yes
+python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_publish.py restore .artifacts/backups/<timestamp>-remove --yes                  # undo
+```
+
+- The server moves removed posts to the admin Trash (gotcha 13); say "moved to Trash", never "permanently deleted". Emptying the Trash is a manual admin action for the human.
+- Refuses a fragment that local HTML still includes with `ezy:replace` (`--force` overrides). Check that the active theme does not use it either: theme-seeded fragments (`account/*`, `support/*`, …) belong to the theme.
+- Backs up every site language first, then verifies each post is `TRASH` and gone from the post list. A removed page's URL then shows the theme's "not found" page with HTTP 200 (gotcha 14).
+- After removing, delete the matching local folders so `ezy-sync status` does not report them as missing.
 
 ## Rules
 

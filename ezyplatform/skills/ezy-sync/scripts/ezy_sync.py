@@ -11,9 +11,10 @@ Targets: page:<slug> | fragment:<page_name>/<fragment_name>
 `pull`/`pull-all` are dry runs unless --write is given. They write content/head/foot
 regions; meta.json (or meta.<lang>.json) is created when missing, in the
 extension's format, but an existing one is never rewritten so local-only fields
-survive. `pull-all` covers every fragment the server lists plus local pages
-(there is no page-listing API); `discover-pages` finds page slugs linked from
-local HTML and pulls the ones not yet managed locally.
+survive. `pull-all` covers every fragment the server lists, every page the
+server lists (GET /ezyarticle/api/v1/posts, trashed pages excluded) and local
+pages; `discover-pages` finds page slugs linked from local HTML and pulls the
+ones not yet managed locally (useful when only some pages should be pulled).
 A page that exists only locally (not created on the server yet) is reported,
 never treated as an error, so it does not stop a bulk pull.
 """
@@ -30,6 +31,7 @@ import ezy_local  # noqa: E402
 COMPARED = ('content', 'additionalHead', 'additionalFoot', 'title', 'summary')
 # The server keeps one summary for all languages, so a localized summary never matches.
 LANG_SHARED = {'summary'}
+PAGE_TYPES = {'PAGE', 'STANDALONE_PAGE', 'TEMPLATED_PAGE'}
 
 
 def fetch(target, lang, env):
@@ -166,12 +168,16 @@ def cmd_pull(args, root, env):
 
 
 def cmd_pull_all(args, root, env):
-    """Every fragment listed by the server plus every local page, default + requested languages."""
+    """Every fragment and page listed by the server plus every local page, default + requested languages."""
     groups = ezy_client.request_json('GET', '/ezyarticle/api/v1/pages/fragments?keyword=', env=env) or {}
     targets = [f'fragment:{page}/{name}' for page in sorted(groups) for name in sorted(groups[page])]
     if args.only:
         targets = [t for t in targets if t.split(':', 1)[1].split('/')[0] in args.only]
-    targets += [t for t in ezy_local.list_targets(root) if t.startswith('page:')]
+    pages = {f"page:{p['slug']}" for p in ezy_client.list_posts(PAGE_TYPES, env) if p.get('slug')}
+    if args.only:
+        pages = set()
+    pages |= {t for t in ezy_local.list_targets(root) if t.startswith('page:')}
+    targets += sorted(pages)
     langs = [None] + [l.strip() for l in (args.langs or '').split(',') if l.strip()]
     print(f'{len(targets)} target(s) x {len(langs)} language(s)')
     total = 0
@@ -217,7 +223,7 @@ def main():
     pl.add_argument('--write', action='store_true')
     pa = sub.add_parser('pull-all')
     pa.add_argument('--langs', help='comma-separated extra languages, e.g. en,vi')
-    pa.add_argument('--only', nargs='*', help='limit fragments to these page_name groups, e.g. cppai common')
+    pa.add_argument('--only', nargs='*', help='limit fragments to these page_name groups, e.g. cppai common (server pages are then skipped; local pages are still pulled)')
     pa.add_argument('--skip-placeholders', action='store_true',
                     help='do not create folders for fragments whose content is only their own name')
     pa.add_argument('--write', action='store_true')

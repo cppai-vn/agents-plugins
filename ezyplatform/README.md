@@ -12,7 +12,8 @@ Bộ skill giúp quản trị site EzyPlatform / EzyArticle bằng cách trò ch
 | `ezy-author` | Writes and redesigns pages, fragments and themes (HTML/Thymeleaf/CSS/JS), light/dark, multilingual |
 | `ezy-media` | Uploads/replaces media library files, visibility, cache-busted URLs |
 | `ezy-i18n` | Diffs and pushes UI message translations (only changed keys) |
-| `ezy-publish` | Dry-run plan → backup → per-language publish → verify → one-command rollback |
+| `ezy-publish` | Dry-run plan → backup → per-language publish → verify → one-command rollback; remove to Trash with undo |
+| `ezy-mail` | EzyMail delivery health, mail templates, EzySupport Contact Us settings and end-to-end form test |
 | `ezy-verify` | Local preview with fragments inlined, live checks (status, unrendered markers, expected text) |
 
 All writes to your site run as a dry run first and need your explicit approval. The admin token stays in your local `environment.json` and is never printed.

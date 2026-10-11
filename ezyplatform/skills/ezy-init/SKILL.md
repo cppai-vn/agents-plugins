@@ -54,7 +54,7 @@ Checks JSON shape, one default environment, real URL, token no longer the placeh
 
 ## 4. Hand over
 
-- First content pull: `python3 ${CLAUDE_SKILL_DIR}/../ezy-sync/scripts/ezy_sync.py pull-all --langs <site languages>` (dry run, then `--write`; `--skip-placeholders` to leave out empty theme fragments, `--only <group>` to limit groups), then `discover-pages --write` to pull the pages linked from the site (repeat until nothing new) — there is no page-listing API, so pull unlinked pages with `pull page:<slug> --write`.
+- First content pull: `python3 ${CLAUDE_SKILL_DIR}/../ezy-sync/scripts/ezy_sync.py pull-all --langs <site languages>` (dry run, then `--write`; `--skip-placeholders` to leave out empty theme fragments, `--only <group>` to limit groups), which also pulls every page the server lists (Trash excluded); `discover-pages --write` is only needed to pull a linked subset.
 - Record the site structure in `README.md` as you learn it (theme/header/footer fragments, menus, languages).
 - Continue with `ezy-guide`.
 

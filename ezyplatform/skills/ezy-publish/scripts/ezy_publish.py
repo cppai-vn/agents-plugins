@@ -5,8 +5,10 @@ Usage:
     python3 ezy_publish.py plan  <target> [...] [--lang LANG]      # dry run, no writes
     python3 ezy_publish.py apply <target> [...] [--lang LANG] --yes
     python3 ezy_publish.py restore <backup-dir> --yes
+    python3 ezy_publish.py remove <target> [...] [--force] [--yes]   # move to Trash
 
-Targets: page:<slug> | fragment:<page_name>/<fragment_name>
+Targets: page:<slug> | fragment:<page_name>/<fragment_name> | post:<slug> (remove only)
+
 Without --lang every language is published: the default plus each language that
 has localized files locally. Fragments always go before pages, so a page never
 references markup or CSS that is not live yet.
@@ -15,11 +17,18 @@ Only existing server posts are updated (PUT /ezyarticle/api/v1/posts/{id}); the
 live post supplies slug, type, status and menu link, local files supply
 content/head/foot/title. Creating new posts is out of scope: publish those once
 with the VS Code extension, then manage them here.
+
+`remove` moves posts to the admin Trash (DELETE /ezyarticle/api/v1/posts?ids=;
+status becomes TRASH, the post still reads by id and slug). It backs up every
+site language first and refuses a fragment that local HTML still includes via
+ezy:replace unless --force. `restore` of such a backup sets the saved status
+back (PUT /ezyarticle/api/v1/posts/status), then rewrites the content.
 """
 import argparse
 import datetime
 import json
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'ezy-shared'))
@@ -117,6 +126,82 @@ def cmd_plan_or_apply(args, root, env):
     return 0
 
 
+def resolve(target, env):
+    """Live post for a removal target; posts and pages share the by-slug endpoint."""
+    kind, _, name = target.partition(':')
+    if kind not in ('page', 'post', 'fragment') or not name:
+        raise SystemExit(f"bad target '{target}': use page:<slug>, post:<slug> or fragment:<page>/<name>")
+    try:
+        if kind == 'fragment':
+            page_name, fragment_name = name.split('/')
+            post = ezy_client.get_fragment(page_name, fragment_name, None, env)
+        else:
+            post = ezy_client.get_page(name, None, env)
+    except ezy_client.EzyError as err:
+        if err.status != 404:
+            raise
+        post = None
+    if not post or not post.get('id'):
+        raise SystemExit(f'{target} does not exist on the server')
+    return post
+
+
+def fragment_users(root, target):
+    """Local page/fragment files that include this fragment with ezy:replace (~{page/name :: region})."""
+    name = target.partition(':')[2]
+    pattern = re.compile(r'~\{\s*' + re.escape(name) + r'\s*::')
+    users = []
+    for folder in ('pages', 'page-fragments', 'posts'):
+        for dirpath, _, files in os.walk(os.path.join(root, folder)):
+            if os.path.relpath(dirpath, root).replace(os.sep, '/').endswith(name):
+                continue
+            for f in files:
+                if f.endswith('.html') and pattern.search(open(os.path.join(dirpath, f), encoding='utf-8').read()):
+                    users.append(os.path.relpath(os.path.join(dirpath, f), root))
+    return users
+
+
+def cmd_remove(args, root, env):
+    posts = [(t, resolve(t, env)) for t in args.targets]
+    print('Remove plan (move to Trash):')
+    blocked = False
+    for target, post in posts:
+        print(f"  - {target} post {post['id']} {post.get('postType')} {post.get('status')}: {post.get('title')!r}")
+        if post.get('status') == 'TRASH':
+            print('    ! already in Trash')
+        if target.startswith('fragment:'):
+            users = fragment_users(root, target)
+            if users:
+                blocked = True
+                print(f"    ! still included by {', '.join(users[:5])}{' ...' if len(users) > 5 else ''}")
+    if blocked and not args.force:
+        print('\nrefused: remove the ezy:replace includes first, or re-run with --force')
+        return 1
+    if not args.yes:
+        print(f'\n{len(posts)} post(s) would move to Trash. Dry run only: re-run with --yes after the human approves.')
+        return 0
+    langs = ezy_client.site_languages(env)
+    stamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+    backup = os.path.join(root, '.artifacts', 'backups', stamp + '-remove')
+    os.makedirs(backup, exist_ok=True)
+    for target, post in posts:
+        for lang in [None] + langs[1:]:
+            live = ezy_client.get_post(post['id'], lang, env)
+            name = f"{target.replace(':', '-').replace('/', '-')}{'-' + lang if lang else ''}.json"
+            with open(os.path.join(backup, name), 'w', encoding='utf-8') as fh:
+                json.dump({'target': target, 'lang': lang, 'removed': True, 'post': live}, fh, ensure_ascii=False, indent=1)
+    print(f'\nbackup: {os.path.relpath(backup, root)}')
+    ezy_client.trash_posts([p['id'] for _, p in posts], env)
+    failed = [t for t, p in posts if ezy_client.get_post(p['id'], None, env).get('status') != 'TRASH']
+    listed = {p['id'] for p in ezy_client.list_posts(env=env)}
+    for target, post in posts:
+        ok = target not in failed and post['id'] not in listed
+        print(f"  {'✓' if ok else 'x'} {target} {'in Trash and gone from the post list' if ok else 'NOT removed'}")
+    print(f'\nundo: python3 {os.path.relpath(__file__, root)} restore {os.path.relpath(backup, root)} --yes')
+    print('note: the public URL of a removed page shows the theme "not found" page, often with HTTP 200, not 404')
+    return 2 if failed else 0
+
+
 def cmd_restore(args, root, env):
     files = sorted(f for f in os.listdir(args.backup_dir) if f.endswith('.json'))
     if not files:
@@ -128,6 +213,13 @@ def cmd_restore(args, root, env):
     if not args.yes:
         print('\ndry run: re-run with --yes after the human approves')
         return 0
+    removed = {}
+    for e in entries:
+        if e.get('removed'):
+            removed.setdefault(e['post']['status'], set()).add(e['post']['id'])
+    for status, ids in removed.items():
+        ezy_client.set_posts_status(sorted(ids), status, env)
+        print(f"  ✓ took {len(ids)} post(s) out of Trash (status {status})")
     for e in entries:
         body = ezy_client.update_payload(e['post'], content=e['post'].get('content') or '',
                                          additionalHead=e['post'].get('additionalHead') or '',
@@ -150,10 +242,15 @@ def main():
     r = sub.add_parser('restore')
     r.add_argument('backup_dir')
     r.add_argument('--yes', action='store_true')
+    rm = sub.add_parser('remove')
+    rm.add_argument('targets', nargs='+')
+    rm.add_argument('--force', action='store_true', help='remove fragments that local HTML still includes')
+    rm.add_argument('--yes', action='store_true')
     args = parser.parse_args()
     root = ezy_client.find_project_root()
     env = ezy_client.load_env(root)
-    return cmd_restore(args, root, env) if args.cmd == 'restore' else cmd_plan_or_apply(args, root, env)
+    handler = {'restore': cmd_restore, 'remove': cmd_remove}.get(args.cmd, cmd_plan_or_apply)
+    return handler(args, root, env)
 
 
 if __name__ == '__main__':
