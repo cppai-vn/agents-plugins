@@ -20,7 +20,7 @@ Update commands and per-agent notes are in each plugin's README.
 
 | Plugin | Description |
 |---|---|
-| [`ezyplatform`](ezyplatform) | Manage EzyPlatform / EzyArticle sites from a local project: init, sync, author, media, i18n, publish with backup and rollback, verify. |
+| [`ezyplatform`](ezyplatform) | Manage EzyPlatform / EzyArticle sites from a local project: new project, sync, author, media, i18n, publish with backup and rollback, verify. |
 
 ## Other agents
 

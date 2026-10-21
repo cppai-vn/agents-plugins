@@ -2,6 +2,10 @@
 
 Users receive an update only when `version` in `.claude-plugin/plugin.json` changes; bump it for every release and record the change here.
 
+## 0.5.0 — 2026-10-22
+
+- Rename the ezy-init skill to ezy-new (script ezy_new.py); it creates a new site project. The ezy CLI uses "ezy init" for machine setup
+
 ## 0.4.0 — 2026-10-11
 
 - New ezy-mail skill (delivery health, mail templates, Contact Us settings and form test); ezy-publish remove to Trash with undo; ezy-sync pull-all lists server pages; shared list_posts/trash_posts/set_posts_status/site_languages; gotchas 12-18 and endpoints for posts list/trash, EzyMail, EzySupport Contact Us; skill suggestions must name the exact file

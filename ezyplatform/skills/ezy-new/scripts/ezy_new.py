@@ -2,10 +2,10 @@
 """Bootstrap a new EzyPlatform / EzyArticle project folder and validate its connection.
 
 Usage:
-    python3 ezy_init.py create [target] [--admin-url URL] [--site NAME]
+    python3 ezy_new.py create [target] [--admin-url URL] [--site NAME]
                                [--copy-skills] [--update-skills] [--no-example]
-    python3 ezy_init.py token-help [admin_url]
-    python3 ezy_init.py check [target]
+    python3 ezy_new.py token-help [admin_url]
+    python3 ezy_new.py check [target]
 
 `create` mirrors the VS Code extension's "EzyArticle: Create Project"
 (environment.json template, AGENTS.md, AGENTS_UPDATED.md, README.md,

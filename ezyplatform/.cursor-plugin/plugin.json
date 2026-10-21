@@ -1,6 +1,6 @@
 {
   "name": "ezyplatform",
-  "description": "Agent skills to manage EzyPlatform / EzyArticle sites from a local project: init, sync, author, media, i18n, publish with backup and rollback, verify.",
+  "description": "Agent skills to manage EzyPlatform / EzyArticle sites from a local project: new project, sync, author, media, i18n, publish with backup and rollback, verify.",
   "author": {
     "name": "CPPAI Co.,LTD"
   },

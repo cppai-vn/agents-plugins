@@ -7,7 +7,7 @@ Bộ skill giúp quản trị site EzyPlatform / EzyArticle bằng cách trò ch
 | Skill | What it does |
 |---|---|
 | `ezy-guide` | Start here: picks the right skill and workflow, safety rules, verified platform gotchas |
-| `ezy-init` | Scaffolds a project like the EzyArticle VS Code "Create Project" command and walks you through getting the admin access token |
+| `ezy-new` | Creates a new site project like the EzyArticle VS Code "Create Project" command and walks you through getting the admin access token |
 | `ezy-sync` | Compares local files with the server, pulls pages/fragments (incl. translations), `pull-all` |
 | `ezy-author` | Writes and redesigns pages, fragments and themes (HTML/Thymeleaf/CSS/JS), light/dark, multilingual |
 | `ezy-media` | Uploads/replaces media library files, visibility, cache-busted URLs |
@@ -54,7 +54,7 @@ Keep `ezy-shared` next to the other skills; every script imports it.
 
 ## Quick start
 
-1. Open an empty folder for your site in your agent and say: *"Initialize an EzyPlatform project for https://admin.example.com"* — `ezy-init` creates `environment.json`, `AGENTS.md`, `README.md`, starter folders and `.gitignore`.
+1. Open an empty folder for your site in your agent and say: *"Create a new EzyPlatform project for https://admin.example.com"* — `ezy-new` creates `environment.json`, `AGENTS.md`, `README.md`, starter folders and `.gitignore`.
 2. Get your token: open `https://admin.example.com/admins/me`, reveal **Access Token** (confirm with your password) and paste it into `environment.json` → the `"default": true` entry → `admin_access_token`. Do not paste it into the chat.
 3. Say *"Check the EzyPlatform setup"* — the agent validates the connection and shows your role and site URL.
 4. Say *"Pull the site content"*, then describe the change you want, e.g. *"Redesign the home page in a modern dark style, keep Vietnamese and English in sync"*. The agent previews, asks before publishing, publishes with a backup and verifies the live site.
@@ -73,7 +73,7 @@ Developed and tested on [cpp.ai.vn](https://cpp.ai.vn).
 
 ## License
 
-MIT — see [LICENSE](../LICENSE). The starter templates in `skills/ezy-init/templates/` come from the EzyArticle VS Code extension by YoungMonkeys (MIT); see `skills/ezy-init/templates/NOTICE.md`.
+MIT — see [LICENSE](../LICENSE). The starter templates in `skills/ezy-new/templates/` come from the EzyArticle VS Code extension by YoungMonkeys (MIT); see `skills/ezy-new/templates/NOTICE.md`.
 
 ---
 
