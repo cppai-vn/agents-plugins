@@ -133,6 +133,15 @@ def put_post(post_id, body, env=None):
     return request_json('PUT', f'/ezyarticle/api/v1/posts/{post_id}', body, env=env)
 
 
+def save_simply(body, publish=False, env=None):
+    """POST /ezyarticle/api/v1/posts/save-simply: create a post the way the VS Code extension does.
+
+    Pages carry slug + postType, fragments pageFragmentPageName + pageFragmentName (postType FRAGMENT),
+    translations `language`; the extension adds ?publish=true when publishing (ezy_local.create_payload).
+    """
+    return request_json('POST', '/ezyarticle/api/v1/posts/save-simply' + ('?publish=true' if publish else ''), body, env=env)
+
+
 def list_posts(post_types=None, env=None, page_size=100):
     """Every non-trashed post (pages, posts, fragments) from GET /ezyarticle/api/v1/posts.
 

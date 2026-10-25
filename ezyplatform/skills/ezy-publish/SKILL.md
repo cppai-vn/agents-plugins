@@ -1,6 +1,6 @@
 ---
 name: ezy-publish
-description: Publish local EzyArticle pages and page fragments to the live EzyPlatform site (local → server) with a dry-run plan, automatic backup, per-language updates, post-write verification and one-command rollback. Use when the user asks to deploy, publish, push or go live with site changes, or to roll back a publish.
+description: Publish local EzyArticle pages and page fragments to the live EzyPlatform site (local → server), creating ones the server does not have yet, with a dry-run plan, automatic backup, per-language updates, post-write verification and one-command rollback. Use when the user asks to deploy, publish, push or go live with site changes, or to roll back a publish.
 ---
 
 # ezy-publish
@@ -17,13 +17,13 @@ Local → server. This changes what visitors see. Read `ezy-guide` (safety rules
    ```bash
    python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_publish.py plan fragment:cppai/theme page:home
    ```
-   Shows per target and language which fields change. Fragments are ordered before pages automatically.
+   Shows per target and language which fields change. Fragments are ordered before pages automatically. A target the server does not have yet is shown as `+ … NEW <postType> <contentType>, status <status>`: it will be created, so tell the human which `admin_url` it goes to and that the `meta.json` status decides whether visitors see it at once.
 4. **Ask the human** — show the plan and get explicit approval for this publish.
 5. **Apply**
    ```bash
    python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_publish.py apply fragment:cppai/theme page:home --yes
    ```
-   Backs up each live post to `.artifacts/backups/<timestamp>/`, PUTs only changed fields, re-reads and verifies, prints the rollback command. Stops at the first failure.
+   Backs up each live post to `.artifacts/backups/<timestamp>/`, PUTs only changed fields, re-reads and verifies, prints the rollback command. New targets are created with `POST /ezyarticle/api/v1/posts/save-simply` (default language first, then each translation), re-read and verified; the printed undo is `remove <targets> --yes` (moves them to Trash). Stops at the first failure.
 6. **Verify live** — `ezy-verify live` (both languages, expected texts), plus a visual check if layout changed.
 7. **Rollback if needed** (also needs approval)
    ```bash
@@ -45,8 +45,8 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_publish.py restore .artifacts/backups/<t
 
 ## Rules
 
-- Only existing server posts are updated. A brand-new page/fragment must be created once with the VS Code extension (`EzyArticle: Publish Content To Server`), then managed here. If this keeps coming up, propose adding create support.
-- Live `status`, `slug`, `postType`, `contentType` and menu link are preserved; the script warns when `meta.json` status disagrees.
+- Existing posts are updated; pages and fragments the server does not have yet are created with the same payload as the VS Code extension (`EzyArticle: Publish Content To Server`). Creating needs `meta.json` with `contentType` (and `pageType` for pages); `status` comes from `meta.json` (default `DRAFT`), unlike the extension, which forces `PUBLISHED`. Posts (`posts/`) are not created here yet.
+- On update, live `status`, `slug`, `postType`, `contentType` and menu link are preserved; the script warns when `meta.json` status disagrees.
 - Media referenced by the new markup must already exist (`ezy-media status`); UI strings must already be pushed (`ezy-i18n`) before markup that uses new keys goes live.
 - Publish order for shared changes: theme/CSS fragments → header/footer → pages.
 - Do not commit or push git as part of publishing unless the human asks.

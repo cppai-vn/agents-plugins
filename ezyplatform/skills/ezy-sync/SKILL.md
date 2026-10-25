@@ -18,7 +18,7 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/ezy_sync.py status page:home fragment:cppai/
 
 - Compares `content`, `head`, `foot`, `title`, `summary` for the default language and every language that has localized files locally.
 - Exit code 1 when anything differs — treat that as "someone changed the site" and pull before editing.
-- A local page the server does not have is shown as `local only` when its `meta.json` status is `DRAFT` (or missing) and does not count as a difference; with any other status it is `MISSING on server` (deleted or renamed in the admin).
+- A local page the server does not have is shown as `local only` when its `meta.json` status is `DRAFT` (or missing) and does not count as a difference; with any other status it is `MISSING on server`: either deleted or renamed in the admin, or a new page that was never published (create it with `ezy-publish`).
 - Localized `summary` is skipped on purpose (the server keeps one summary; gotcha 5).
 
 ## Pull
