@@ -23,7 +23,7 @@ checks. "Verified" = exercised against a live server.
 | PUT | `/ezyarticle/api/v1/posts/{id}` | update; body rules in gotchas 3–4 (verified) |
 | DELETE | `/ezyarticle/api/v1/posts?ids=1,2` | move to Trash, status `TRASH` (verified, gotcha 13) |
 | PUT | `/ezyarticle/api/v1/posts/status?ids=1,2` | bulk status `{status}`; takes posts out of Trash (admin JS; not yet exercised) |
-| POST | `/ezyarticle/api/v1/posts/save-simply[?publish=true]` | create or update as the extension does; body `title, content, additionalHead, additionalFoot, summary, contentType, status, postType, slug` (pages) or `pageFragmentPageName, pageFragmentName` (fragments), `language` for translations (verified by a site build script on payfs.vn) |
+| POST | `/ezyarticle/api/v1/posts/save-simply[?publish=true]` | create or update as the extension does; body `title, content, additionalHead, additionalFoot, summary, contentType, status, postType, slug` (pages) or `pageFragmentPageName, pageFragmentName` (fragments), `language` for translations (verified by a site build script on payfs.vn); `ezy-publish` creates new pages/fragments with it (`ezy_client.save_simply`, body from `ezy_local.create_payload`, mirroring extension 0.2.8 `buildPayload`) |
 | GET | `/ezyarticle/api/v1/menus` | menus with items (verified) |
 | GET | `/ezyarticle/api/v1/terms/{type}/{slugOrName}`, POST `/ezyarticle/api/v1/terms/add-or-update` | terms (extension) |
 

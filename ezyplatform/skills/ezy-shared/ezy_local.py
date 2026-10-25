@@ -5,6 +5,7 @@ Localized files follow the extension convention: content.<lang>.html,
 head.<lang>.html, foot.<lang>.html, meta.<lang>.json, each falling back to the
 non-localized file when missing.
 """
+import datetime
 import json
 import os
 import re
@@ -81,6 +82,64 @@ def local_fields(folder, lang=None):
     if 'summary' in meta:
         fields['summary'] = meta['summary']
     return fields
+
+
+def published_at_ms(value):
+    """meta.json `publishedAt` (yyyy-MM-dd HH:mm:ss, local time) as epoch milliseconds; None when absent or invalid."""
+    if not isinstance(value, str) or not value.strip():
+        return None
+    try:
+        return int(datetime.datetime.strptime(value.strip(), '%Y-%m-%d %H:%M:%S').timestamp() * 1000)
+    except ValueError:
+        return None
+
+
+def create_payload(folder, target, lang=None):
+    """save-simply body for a post the server does not have yet, built like the extension's buildPayload.
+
+    Title and summary come from meta.<lang>.json first, everything else from meta.json; regions fall back
+    to the non-localized file. Values of the wrong type are left out, as the extension does. Unlike the
+    extension's publish, the status is taken from meta.json (default DRAFT) instead of forced to PUBLISHED.
+    """
+    kind, _, name = target.partition(':')
+    if not os.path.isfile(os.path.join(folder, 'meta.json')):
+        raise SystemExit(f'{target}: meta.json is required to create it on the server')
+    meta = read_meta(folder)
+    localized = json.loads(_read(os.path.join(folder, f'meta.{lang}.json')) or '{}') if lang else {}
+    title = localized.get('title', meta.get('title'))
+    summary = localized.get('summary', meta.get('summary'))
+
+    def pick(key, kinds):
+        value = meta.get(key)
+        return value if isinstance(value, kinds) and not isinstance(value, bool) else None
+
+    body = {
+        'language': lang,
+        'title': title if isinstance(title, str) else '',
+        'summary': '' if summary is None else str(summary),
+        'content': read_region(folder, 'content', lang) or '',
+        'additionalHead': read_region(folder, 'head', lang) or '',
+        'additionalFoot': read_region(folder, 'foot', lang) or '',
+        'featuredImageName': pick('featuredImageName', str),
+        'contentType': pick('contentType', str),
+        'metadata': pick('metadata', dict),
+        'status': pick('status', str) or 'DRAFT',
+        'priority': pick('priority', (int, float)),
+        'publishedAt': published_at_ms(meta.get('publishedAt')),
+        'password': pick('password', str),
+        'terms': [t for t in meta['terms'] if isinstance(t, str)] if isinstance(meta.get('terms'), list) else None,
+    }
+    if kind == 'page':
+        body['slug'] = name
+        body['postType'] = pick('pageType', str)
+        if not body['postType']:
+            raise SystemExit(f'{target}: meta.json needs "pageType" (PAGE, STANDALONE_PAGE or TEMPLATED_PAGE)')
+    else:
+        body['pageFragmentPageName'], body['pageFragmentName'] = name.split('/')
+        body['postType'] = 'FRAGMENT'
+    if not body['contentType']:
+        raise SystemExit(f'{target}: meta.json needs "contentType" (HTML or THYMELEAF)')
+    return {k: v for k, v in body.items() if v is not None}
 
 
 def write_region(folder, region, text, lang=None):

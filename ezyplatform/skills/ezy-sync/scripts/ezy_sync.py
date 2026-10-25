@@ -53,7 +53,7 @@ def missing_state(folder):
     status = ezy_local.read_meta(folder).get('status')
     if status in (None, 'DRAFT'):
         return f"local only ({status or 'no status'}, not on server yet)"
-    return f'MISSING on server (local status {status})'
+    return f'MISSING on server (local status {status}; new? create it with ezy-publish)'
 
 
 def is_placeholder(target, server):

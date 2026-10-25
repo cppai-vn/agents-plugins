@@ -13,10 +13,13 @@ Without --lang every language is published: the default plus each language that
 has localized files locally. Fragments always go before pages, so a page never
 references markup or CSS that is not live yet.
 
-Only existing server posts are updated (PUT /ezyarticle/api/v1/posts/{id}); the
+Existing server posts are updated (PUT /ezyarticle/api/v1/posts/{id}); the
 live post supplies slug, type, status and menu link, local files supply
-content/head/foot/title. Creating new posts is out of scope: publish those once
-with the VS Code extension, then manage them here.
+content/head/foot/title. A page or fragment the server does not have yet is
+created (POST /ezyarticle/api/v1/posts/save-simply, as the VS Code extension
+does) from meta.json and the local files: the default language first, then each
+translation. Its status comes from meta.json (default DRAFT). Undo a creation
+with `remove <target> --yes` (moves it to Trash).
 
 `remove` moves posts to the admin Trash (DELETE /ezyarticle/api/v1/posts?ids=;
 status becomes TRASH, the post still reads by id and slug). It backs up every
@@ -39,14 +42,20 @@ SENT = ('content', 'additionalHead', 'additionalFoot', 'title')
 
 
 def fetch_live(target, lang, env):
+    """Live post for the target in `lang`, or None when the server does not have the target yet."""
     kind, _, name = target.partition(':')
-    if kind == 'page':
-        post = ezy_client.get_page(name, None, env)
-    else:
-        page_name, fragment_name = name.split('/')
-        post = ezy_client.get_fragment(page_name, fragment_name, None, env)
+    try:
+        if kind == 'page':
+            post = ezy_client.get_page(name, None, env)
+        else:
+            page_name, fragment_name = name.split('/')
+            post = ezy_client.get_fragment(page_name, fragment_name, None, env)
+    except ezy_client.EzyError as err:
+        if err.status != 404:
+            raise
+        post = None
     if not post or not post.get('id'):
-        raise SystemExit(f'{target} does not exist on the server; publish it once with the VS Code extension first')
+        return None
     return ezy_client.get_post(post['id'], lang, env) if lang else post
 
 
@@ -62,7 +71,14 @@ def build_jobs(targets, only_lang, root, env):
             raise SystemExit(f'local folder missing for {target}: {folder}')
         langs = [only_lang] if only_lang else [None] + ezy_local.languages(folder)
         meta = ezy_local.read_meta(folder)
+        exists = fetch_live(target, None, env) is not None
+        if not exists and only_lang:
+            raise SystemExit(f'{target} is not on the server yet: create the default language first (run without --lang)')
         for lang in langs:
+            if not exists:
+                jobs.append({'target': target, 'lang': lang, 'live': None, 'create': True,
+                             'changes': ezy_local.create_payload(folder, target, lang), 'warn': None})
+                continue
             live = fetch_live(target, lang, env)
             local = ezy_local.local_fields(folder, lang)
             changes = {k: local[k] for k in SENT if k in local and local[k] != (live.get(k) or '')}
@@ -77,6 +93,11 @@ def build_jobs(targets, only_lang, root, env):
 
 def describe(job):
     lang = job['lang'] or 'default'
+    if job.get('create'):
+        body = job['changes']
+        regions = ', '.join(f"{k} ({len(body[k])} chars)" for k in ('content', 'additionalHead', 'additionalFoot') if body.get(k))
+        return (f"  + {job['target']} [{lang}] NEW {body['postType']} {body['contentType']}, status {body['status']}: "
+                f"{body.get('title')!r}; {regions or 'empty'}")
     if not job['changes']:
         return f"  = {job['target']} [{lang}] up to date"
     fields = ', '.join(f"{k} ({len(v)} chars)" for k, v in job['changes'].items())
@@ -84,6 +105,11 @@ def describe(job):
 
 
 def verify(job, env):
+    if job.get('create'):
+        after = fetch_live(job['target'], job['lang'], env)
+        if after is None:
+            return ['not found after create']
+        return [k for k in SENT if (after.get(k) or '') != (job['changes'].get(k) or '')]
     after = ezy_client.get_post(job['live']['id'], job['lang'], env)
     bad = [k for k, v in job['changes'].items() if (after.get(k) or '') != v and k != 'summary']
     return bad
@@ -100,29 +126,58 @@ def cmd_plan_or_apply(args, root, env):
     if not pending:
         print('\nnothing to publish')
         return 0
+    creates = [j for j in pending if j.get('create')]
+    updates = [j for j in pending if not j.get('create')]
     if args.cmd == 'plan' or not args.yes:
-        print(f'\n{len(pending)} update(s) pending. Dry run only: re-run "apply ... --yes" after the human approves.')
+        summary = ', '.join(s for s in (f'{len(creates)} new' if creates else '', f'{len(updates)} update(s)' if updates else '') if s)
+        print(f'\n{summary} pending. Dry run only: re-run "apply ... --yes" after the human approves.')
+        if creates:
+            print(f"Check admin_url ({env['admin_url']}): new posts go live there with the status shown.")
         return 0
-    stamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
-    backup = os.path.join(root, '.artifacts', 'backups', stamp)
-    os.makedirs(backup, exist_ok=True)
+    script = os.path.relpath(__file__, root)
+    backup = None
+    if updates:
+        stamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+        backup = os.path.join(root, '.artifacts', 'backups', stamp)
+        os.makedirs(backup, exist_ok=True)
+        for job in updates:
+            name = f"{job['target'].replace(':', '-').replace('/', '-')}{'-' + job['lang'] if job['lang'] else ''}.json"
+            with open(os.path.join(backup, name), 'w', encoding='utf-8') as fh:
+                json.dump({'target': job['target'], 'lang': job['lang'], 'post': job['live']}, fh, ensure_ascii=False, indent=1)
+        print(f'\nbackup: {os.path.relpath(backup, root)}')
+    created = []
+
+    def undo_lines():
+        lines = []
+        if backup:
+            lines.append(f'rollback: python3 {script} restore {os.path.relpath(backup, root)} --yes')
+        if created:
+            lines.append(f"undo create (moves to Trash): python3 {script} remove {' '.join(created)} --yes")
+        return lines
+
     for job in pending:
-        name = f"{job['target'].replace(':', '-').replace('/', '-')}{'-' + job['lang'] if job['lang'] else ''}.json"
-        with open(os.path.join(backup, name), 'w', encoding='utf-8') as fh:
-            json.dump({'target': job['target'], 'lang': job['lang'], 'post': job['live']}, fh, ensure_ascii=False, indent=1)
-    print(f'\nbackup: {os.path.relpath(backup, root)}')
-    for job in pending:
-        body = ezy_client.update_payload(job['live'], **job['changes'])
-        if job['lang']:
-            body['language'] = job['lang']
+        label = f"{job['target']} [{job['lang'] or 'default'}]"
         try:
-            ezy_client.put_post(job['live']['id'], body, env)
+            if job.get('create'):
+                ezy_client.save_simply(job['changes'], job['changes']['status'] == 'PUBLISHED', env)
+                if job['target'] not in created:
+                    created.append(job['target'])
+            else:
+                body = ezy_client.update_payload(job['live'], **job['changes'])
+                if job['lang']:
+                    body['language'] = job['lang']
+                ezy_client.put_post(job['live']['id'], body, env)
         except ezy_client.EzyError as err:
-            print(f"  x {job['target']} [{job['lang'] or 'default'}] failed: {err}\n  stopped; earlier steps stay live, restore with: restore {os.path.relpath(backup, root)} --yes")
+            print(f'  x {label} failed: {err}\n  stopped; earlier steps stay live')
+            for line in undo_lines():
+                print(f'  {line}')
             return 2
         bad = verify(job, env)
-        print(f"  ✓ {job['target']} [{job['lang'] or 'default'}] published" + (f' but differs after reload: {bad}' if bad else ' and verified'))
-    print(f'\nrollback: python3 {os.path.relpath(__file__, root)} restore {os.path.relpath(backup, root)} --yes')
+        action = 'created' if job.get('create') else 'published'
+        print(f'  ✓ {label} {action}' + (f' but differs after reload: {bad}' if bad else ' and verified'))
+    print()
+    for line in undo_lines():
+        print(line)
     return 0
 
 

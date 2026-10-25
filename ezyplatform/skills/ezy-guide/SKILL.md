@@ -28,7 +28,7 @@ Signpost for the `ezy-*` skills: which skill does what, in what order, under whi
 | Build or change a page, fragment, theme, copy, content translation | `ezy-author` |
 | Images, CSS/JS files, logos, anything under `api/v1/media` | `ezy-media` |
 | Menu labels, shared UI strings, `messages*.properties` | `ezy-i18n` |
-| Push changes live, roll back | `ezy-publish` |
+| Push changes live (also create new pages/fragments), roll back | `ezy-publish` |
 | Remove a page, post or fragment (move to Trash), undo it | `ezy-publish remove` / `restore` |
 | Mail not arriving, mail templates, contact form, any feature that sends email | `ezy-mail` |
 | Preview locally, check the live site | `ezy-verify` |
